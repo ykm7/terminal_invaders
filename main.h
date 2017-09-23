@@ -14,19 +14,31 @@
 
 #endif //SPACE_INVADERS_MAIN_H
 
-#define DELAY 150000
+#define DELAY 100000
+#define MESSAGE_DELAY 5
+#define MAX_BULLETS 100
+#define MAX_ALIENS 100
+
+#define TRUE 1
+#define FALSE 0
 
 /* int *maxY; */
 /* int *maxX; */
 
 struct Alien {
     char body;
+    int curr_x;
+    int curr_y;
+    int direction;
+    int value;
+    int dead;
 };
 
 struct Aliens {
-    struct Alien **aliens;
+    struct Alien *aliens[100];
     int totalNumAliens;
     int aliensRemaining;
+    int aliensWin;
 };
 
 struct Ship {
@@ -34,6 +46,18 @@ struct Ship {
     int health;
     int posX;
     int posY;
+};
+
+struct Bullet {
+    char body;
+    int curr_x;
+    int curr_y;
+};
+
+struct Bullets {
+    struct Bullet *bullets[100];
+    int maxBullets;
+    int numBullets;
 };
 
 struct Aliens* setupAliens(const int);

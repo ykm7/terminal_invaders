@@ -10,10 +10,15 @@ struct Aliens* setupAliens(const int numAliens) {
     struct Aliens* aliens = (struct Aliens *)malloc(sizeof(struct Aliens));
     aliens->totalNumAliens = numAliens;
     aliens->aliensRemaining = numAliens;
-    aliens->aliens = (struct Alien**)malloc(sizeof(struct Alien*));
+    aliens->aliensWin = FALSE;
     for(int i = 0; i < numAliens; i++){
         aliens->aliens[i] = (struct Alien*)malloc(sizeof(struct Alien) * numAliens);
         aliens->aliens[i]->body = 'X';
+        aliens->aliens[i]->curr_x = i + 1;
+        aliens->aliens[i]->curr_y = 1;
+        aliens->aliens[i]->direction = 1;
+        aliens->aliens[i]->value = 25;
+        aliens->aliens[i]->dead = FALSE;
     }
     return aliens;
 };
@@ -29,9 +34,6 @@ struct Ship* setupShip(int health, int intX, int intY){
     ship->posY = intY - 1;
     return ship;
 };
-
-/* void printShipInfo(struct Ship* ship){ */
-/* } */
 
 WINDOW *setupWindow(int height, int width, int starty, int startx){
     WINDOW *new_win;
@@ -70,40 +72,144 @@ void destroyAliens(struct Aliens *aliens){
  * @param curr_x_pos
  * @return
  */
-int moveAliens(struct Aliens *aliens, WINDOW *win_field, int curr_y_pos, int curr_x_pos, int field_start_x, int field_end_x){
+int moveAliens(struct Aliens *aliens, int field_start_x, int field_end_x, int field_end_y){
     for(int i = 0; i < aliens->totalNumAliens; i++){
+        if(aliens->aliens[i] != NULL){
 
-        if (curr_x_pos < field_start_x || curr_x_pos > field_end_x) {
-            curr_y_pos++;
-            curr_x_pos *= -1;
+            // Do not move alien if dead.
+            if(aliens->aliens[i]->dead == TRUE){
+                continue;
+            }
+
+            aliens->aliens[i]->curr_x += aliens->aliens[i]->direction;
+
+            if(aliens->aliens[i]->curr_x <= field_start_x ||
+               aliens->aliens[i]->curr_x >= field_end_x){
+                aliens->aliens[i]->curr_y++;
+                aliens->aliens[i]->direction *= -1;
+            }
+
+            // Checking when aliens hit the floor.
+            if(aliens->aliens[i]->curr_y >= field_end_y - 2){
+                aliens->aliensWin = TRUE;
+                break;
+            }
         }
+    }
+}
 
-        mvwprintw(win_field, curr_y_pos, curr_x_pos, &(aliens->aliens[i]->body));
-        curr_x_pos++;
-//        if(curr_y_pos >= COLS){
-//            return 1;
-//        }
+void displayAliens(WINDOW *win_field, struct Aliens *aliens){
+    for(int i = 0; i < aliens->totalNumAliens; i++) {
+            mvwprintw(win_field, aliens->aliens[i]->curr_y, aliens->aliens[i]->curr_x, &(aliens->aliens[i]->body));
     }
 }
 
 //:X
 
+void shoot(struct Bullets *bullets, int pos_y, int pos_x){
+
+    if(bullets->numBullets < bullets->maxBullets){
+        bullets->bullets[bullets->numBullets] = (struct Bullet *)malloc(sizeof(struct Bullet));
+        bullets->bullets[bullets->numBullets]->curr_x = pos_x;
+        bullets->bullets[bullets->numBullets]->curr_y = pos_y;
+        bullets->bullets[bullets->numBullets]->body = 'o';
+        bullets->numBullets++;
+    }
+}
+
+/**
+ * Move bullets up by one.
+ * @param bullets
+ */
+void moveBullets(struct Bullets *bullets, int field_min_y){
+    for(int i = 0; i < bullets->numBullets; i++){
+        if(bullets->bullets[i] != NULL){
+            bullets->bullets[i]->curr_y--;
+            if(bullets->bullets[i]->curr_y == field_min_y){
+                free(bullets->bullets[i]);
+                bullets->numBullets--;
+//                bullets->bullets[i] = NULL;
+            }
+        }
+    }
+}
+
+void displayBullets(WINDOW* win, struct Bullets *bullets){
+    for(int i = 0; i < bullets->numBullets; i++){
+        if(bullets->bullets[i] != NULL){
+            mvwprintw(win, bullets->bullets[i]->curr_y, bullets->bullets[i]->curr_x, &(bullets->bullets[i]->body));
+        }
+    }
+}
+
+void displayScore(WINDOW *win, int const *const score){
+    mvwprintw(win, 1, 1, "SCORE: %d", *score);
+}
+
+void displayBanner(WINDOW *win){
+    mvwprintw(win, 1, 1, "SPACEY INVADERS");
+}
+
+void displayLevel(WINDOW *win, int const *const level){
+    mvwprintw(win, 1, 1, "Level: %d", *level);
+}
+
+void killAlien(struct Alien *alien, int *const score){
+    alien->dead = TRUE;
+    alien->direction = 0;
+    (*score) += alien->value;
+}
+
+// Check for collisions.
+void checkCollisions(struct Bullets *bullets, struct Aliens *aliens, int *const score){
+
+    // Only check if they are the correct 'height'
+    for(int i = 0; i < aliens->aliensRemaining; i++){
+        if(aliens->aliens[i]->dead != TRUE){
+            for(int j = 0; j < bullets->numBullets; j++){
+                if(bullets->bullets[j] != NULL){
+                    if(aliens->aliens[i]->curr_y == bullets->bullets[j]->curr_y &&
+                       aliens->aliens[i]->curr_x == bullets->bullets[j]->curr_x){
+                        // HIT!!
+//                        free(bullets->bullets[j]);
+                        bullets->bullets[j] = NULL;
+                        killAlien(aliens->aliens[i], score);
+                        aliens->aliensRemaining--;
+                        break;
+                    }
+                }
+            }
+        }
+    }
+}
+
 void *guiFunction(void *ptr){
 
     WINDOW *win_field;
-    WINDOW *win_top_left;
-    WINDOW *win_top_right;
+    WINDOW *win_score;
+    WINDOW *win_banner;
+    WINDOW *win_level;
 
     int max_x = 0;
     int max_y = 0;
     int field_max_x = 0;
     int field_max_y = 0;
 
-    int curr_alien_x = 0;
-    int curr_alien_y = 0;
-    int alien_direction = -1;
+    int score_int = 0;
+    int *const score = &score_int;
 
-    const int numAliens = 1;
+    int level_int = 1;
+    int *const level = &level_int;
+
+    int time_int = 0;
+    int *const time = &time_int;
+
+    int curr_alien_x = 0;
+
+    struct Bullets *bullets = (struct Bullets *)malloc(sizeof(struct Bullets));
+//    bullets->bullets = (struct Bullet **)malloc(sizeof(struct Bullet *));
+    bullets->numBullets = 0;
+    bullets->maxBullets = MAX_BULLETS;
 
     initscr();          // Initialising screen.
     noecho();           // Stops character being displayed on screen.
@@ -111,57 +217,80 @@ void *guiFunction(void *ptr){
     curs_set(FALSE);    // Disables cursor.
 
     getmaxyx(stdscr, max_y, max_x);
-//    wrefresh(stdscr);
-    win_field = setupWindow(max_y - 5, max_x, 5, 0);
-    win_top_left = setupWindow(5, max_x / 2, 0, 0);
-    win_top_right = setupWindow(5, max_x / 2, 0, max_x / 2 + 1);
+    // Main window
+    win_field = setupWindow(max_y - 3, max_x, 3, 0);
+
+    // Top three windows.
+    win_level = setupWindow(3, max_x / 3, 0, 0);
+    win_banner = setupWindow(3, max_x / 3 + 1, 0, max_x / 3);
+    win_score = setupWindow(3, max_x / 3, 0, 2* max_x / 3 + 1);
 
     getmaxyx(win_field, field_max_y, field_max_x);
 
     struct Ship *ship = setupShip(100, field_max_x, field_max_y - 1);
-    struct Aliens *aliens = setupAliens(numAliens);
+    struct Aliens *aliens = setupAliens(MAX_ALIENS);
 
     int ch;             // User entered character.
-//    keypad(stdscr, TRUE);   // Enables keypad.
     keypad(win_field, TRUE);   // Enables keypad.
-//    keypad(win_field, TRUE);   // Enables keypad.
-//    keypad(win_field, TRUE);   // Enables keypad.
-//    nodelay(stdscr, TRUE);
     nodelay(win_field, TRUE);
 
+    int tmpSingleUse = 0;
 
-    char tmpAlien = 'X';
-//    time_t start_time, end_time;
+    wclear(win_banner);
+    displayBanner(win_banner);
+    drawBorders(win_banner);
+    wrefresh(win_banner);
+
     for (;;) {
-
-//        while(difftime(end_time, start_time) > 1){
         ////////////// NEED TO BE SLOWER.
         wclear(win_field);
-        wclear(win_top_left);
-        wclear(win_top_right);
+        wclear(win_score);
+        wclear(win_level);
 
-        moveAliens(aliens, win_field, curr_alien_y, curr_alien_x, 0, field_max_x);
+        // FIXME: can be on separate thread.
+        moveAliens(aliens, 0, field_max_x, field_max_y);
+
+        displayScore(win_score, score);
+        displayLevel(win_level, level);
+
+        displayAliens(win_field, aliens);
+        displayBullets(win_field, bullets);
         // Lose condition.
         mvwprintw(win_field, ship->posY, ship->posX, &ship->body);
 
         drawBorders(win_field);
-        drawBorders(win_top_left);
-        drawBorders(win_top_right);
+        drawBorders(win_score);
+        drawBorders(win_level);
 
         wrefresh(win_field);
-        wrefresh(win_top_left);
-        wrefresh(win_top_right);
+        wrefresh(win_score);
+        wrefresh(win_level);
 
         curr_alien_x += 1;
+
+        moveBullets(bullets, 0);
+        checkCollisions(bullets, aliens, score);
+
         usleep(DELAY);
         ////////////////
 //        }
 
-        // Win condition.
-//        if (aliens->aliensRemaining == 0) {
-//            endwin();
-//            return 0;
-//        }
+//         Lose condition when the alien row hit the same row as the ship.
+        if (aliens->aliensWin == TRUE) {
+            wclear(win_field);
+            char *WIN_MESSAGE = "YOU LOSE";
+            mvwprintw(win_field, field_max_y/2, field_max_x/2 - 2, WIN_MESSAGE);
+            drawBorders(win_field);
+            wrefresh(win_field);
+            sleep(MESSAGE_DELAY);
+            endwin();
+            return 0;
+        }
+
+        if(tmpSingleUse < 3){
+            tmpSingleUse++;
+            shoot(bullets, ship->posY, ship->posX);
+        }
 
         if ((ch = wgetch(win_field)) != ERR) {
             // User input.
@@ -186,6 +315,7 @@ void *guiFunction(void *ptr){
                      * If it does destroy alien and itself.
                      * Add score.
                      */
+                    shoot(bullets, ship->posY, ship->posX);
                     break;
 
                 case KEY_DOWN:      // Exit condition.
@@ -209,111 +339,4 @@ int main() {
     }
 
     pthread_join(gui_thread, NULL);
-
-//    WINDOW *win_field;
-//    WINDOW *win_top_left;
-//    WINDOW *win_top_right;
-//
-//    int max_x = 0;
-//    int max_y = 0;
-//    int field_max_x = 0;
-//    int field_max_y = 0;
-//
-//    int curr_alien_x = 0;
-//    int curr_alien_y = 0;
-//    int alien_direction = -1;
-//
-//    const int numAliens = 1;
-//
-//    initscr();          // Initialising screen.
-//    noecho();           // Stops character being displayed on screen.
-//    cbreak();           // Does not wait for line break.
-//    curs_set(FALSE);    // Disables cursor.
-//
-//    getmaxyx(stdscr, max_y, max_x);
-////    wrefresh(stdscr);
-//    win_field = setupWindow(max_y - 5, max_x, 5, 0);
-//    win_top_left = setupWindow(5, max_x / 2, 0, 0);
-//    win_top_right = setupWindow(5, max_x / 2, 0, max_x / 2 + 1);
-//
-//    getmaxyx(win_field, field_max_y, field_max_x);
-//
-//    struct Ship *ship = setupShip(100, field_max_x, field_max_y - 1);
-//    struct Aliens *aliens = setupAliens(numAliens);
-//
-//    int ch;             // User entered character.
-////    keypad(stdscr, TRUE);   // Enables keypad.
-//    keypad(win_field, TRUE);   // Enables keypad.
-////    keypad(win_field, TRUE);   // Enables keypad.
-////    keypad(win_field, TRUE);   // Enables keypad.
-////    nodelay(stdscr, TRUE);
-//    nodelay(win_field, TRUE);
-//
-//
-//    char tmpAlien = 'X';
-////    time_t start_time, end_time;
-//    for (;;) {
-//
-////        while(difftime(end_time, start_time) > 1){
-//            ////////////// NEED TO BE SLOWER.
-//            wclear(win_field);
-//            wclear(win_top_left);
-//            wclear(win_top_right);
-//
-//            moveAliens(aliens, win_field, curr_alien_y, curr_alien_x, 0, field_max_x);
-//            // Lose condition.
-//            mvwprintw(win_field, ship->posY, ship->posX, &ship->body);
-//
-//            drawBorders(win_field);
-//            drawBorders(win_top_left);
-//            drawBorders(win_top_right);
-//
-//            wrefresh(win_field);
-//            wrefresh(win_top_left);
-//            wrefresh(win_top_right);
-//
-//            curr_alien_x += 1;
-//            usleep(DELAY);
-//            ////////////////
-////        }
-//
-//        // Win condition.
-////        if (aliens->aliensRemaining == 0) {
-////            endwin();
-////            return 0;
-////        }
-//
-//        if ((ch = wgetch(win_field)) != ERR) {
-//            // User input.
-//            switch (ch) {
-//                case KEY_LEFT:
-//                    if (ship->posX > 1) {
-//                        ship->posX--;
-//                    }
-//                    break;
-//
-//                case KEY_RIGHT:
-//                    if (ship->posX < field_max_x - 2) {
-//                        ship->posX++;
-//                    }
-//                    break;
-//
-//                case KEY_UP:        // Shooting.
-//                    /*
-//                     * TODO:
-//                     * Create object moving vertically upwards.
-//                     * Check if it connects to alien.
-//                     * If it does destroy alien and itself.
-//                     * Add score.
-//                     */
-//                    break;
-//
-//                case KEY_DOWN:      // Exit condition.
-//                    destroyShip(ship);
-//                    destroyAliens(aliens);
-//                    endwin();       // Reset terminal to default.
-//                    return 0;
-//            }
-//        }
-//    }
 }
