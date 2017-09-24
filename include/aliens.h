@@ -25,7 +25,8 @@ struct Aliens {
 
 struct Aliens* setupAliens(const int);
 void destroyAliens(struct Aliens *);
-void moveAliens(struct Aliens *, int, int, int);
+void moveAliens(struct Aliens *, struct Bullets *, int, int, int);
 void displayAliens(WINDOW *, struct Aliens *);
+void killAlien(struct Alien *, int *const);
 
 #endif //SPACE_INVADERS_ALIENS_H

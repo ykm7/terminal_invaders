@@ -10,6 +10,8 @@
 #include <pthread.h>
 
 #include "aliens.h"
+#include "c_window.h"
+#include "bullets.h"
 
 #ifndef SPACE_INVADERS_MAIN_H
 #define SPACE_INVADERS_MAIN_H
@@ -22,21 +24,8 @@
 #define TRUE 1
 #define FALSE 0
 
-//struct Alien {
-//    char body;
-//    int curr_x;
-//    int curr_y;
-//    int direction;
-//    int value;
-//    int dead;
-//};
-//
-//struct Aliens {
-//    struct Alien *aliens[MAX_ALIENS];
-//    int totalNumAliens;
-//    int aliensRemaining;
-//    int aliensWin;
-//};
+#define ALIEN 1
+#define SHIP 0
 
 struct Ship {
     char body;
@@ -50,6 +39,7 @@ struct Bullet {
     int curr_x;
     int curr_y;
     int active;
+    int type;
 };
 
 struct Bullets {
@@ -61,12 +51,7 @@ struct Bullets {
 
 extern int level_difficulty;
 
-struct Aliens* setupAliens(const int);
 struct Ship* setupShip(int, int, int);
-WINDOW *setupWindow(int, int, int, int);
-void drawBorders(WINDOW *);
-void destroyWin(WINDOW *);
 void destroyShip(struct Ship *);
-void destroyAliens(struct Aliens *);
 
 #endif //SPACE_INVADERS_MAIN_H

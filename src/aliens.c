@@ -2,7 +2,8 @@
 // Created by yoakim on 24/09/17.
 //
 
-#include "aliens.h"
+#include "../include/aliens.h"
+
 struct Aliens* setupAliens(const int numAliens) {
 
     struct Aliens* aliens = (struct Aliens *)malloc(sizeof(struct Aliens));
@@ -37,15 +38,9 @@ void destroyAliens(struct Aliens *aliens){
  * @param curr_x_pos
  * @return
  */
-void moveAliens(struct Aliens *aliens, int field_start_x, int field_end_x, int field_end_y){
+void moveAliens(struct Aliens *aliens, struct Bullets *bullets, int field_start_x, int field_end_x, int field_end_y){
     for(int i = 0; i < aliens->totalNumAliens; i++){
-//        if(aliens->aliens[i] != NULL){
         if(aliens->aliens[i]->dead != TRUE){
-
-//            // Do not move alien if dead.
-//            if(aliens->aliens[i]->dead == TRUE){
-//                continue;
-//            }
 
             aliens->aliens[i]->curr_x += aliens->aliens[i]->direction;
 
@@ -56,8 +51,8 @@ void moveAliens(struct Aliens *aliens, int field_start_x, int field_end_x, int f
             }
 
             // Aliens shooting should increase as the levels progress.
-            if((rand() % MAX_ALIENS) >= level_difficulty * 5){
-
+            if((rand() % level_difficulty) == 1){
+                shoot(bullets, aliens->aliens[i]->curr_y, aliens->aliens[i]->curr_x, ALIEN);
             }
 
             // Checking when aliens hit the floor.
@@ -73,4 +68,11 @@ void displayAliens(WINDOW *win_field, struct Aliens *aliens){
     for(int i = 0; i < aliens->totalNumAliens; i++) {
         mvwprintw(win_field, aliens->aliens[i]->curr_y, aliens->aliens[i]->curr_x, &(aliens->aliens[i]->body));
     }
+}
+
+void killAlien(struct Alien *alien, int *const score){
+    alien->dead = TRUE;
+    alien->direction = 0;
+    alien->body = ' ';
+    (*score) += alien->value;
 }
