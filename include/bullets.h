@@ -5,11 +5,31 @@
 #ifndef SPACE_INVADERS_BULLETS_H
 #define SPACE_INVADERS_BULLETS_H
 
-#include "main.h"
+#include "bullets.h"
 
-void displayBullets(WINDOW*, struct Bullets *);
-struct Bullets* setupBullets(void);
-void shoot(struct Bullets *, int, int, int);
-void moveBullets(struct Bullets *, int, int);
-void destroyBullets(struct Bullets *);
+#define MAX_BULLETS     200
+
+#define ALIEN 1
+#define SHIP 0
+
+typedef struct bullet {
+    char body;
+    int curr_x;
+    int curr_y;
+    int active;
+    int type;
+} Bullet;
+
+typedef struct bullets {
+    Bullet *bullets[MAX_BULLETS];
+//    int maxBullets;
+//    int numBullets;
+    int current;
+} Bullets;
+
+Bullets* setupBullets(void);
+void shoot(Bullets *, int, int, int);
+void moveBullets(Bullets *, int, int);
+void destroyBullets(Bullets *);
+
 #endif //SPACE_INVADERS_BULLETS_H

@@ -5,28 +5,30 @@
 #ifndef SPACE_INVADERS_ALIENS_H
 #define SPACE_INVADERS_ALIENS_H
 
+#include "bullets.h"
 #include "main.h"
 
-struct Alien {
+#define MAX_ALIENS      100
+
+typedef struct alien {
     char body;
     int curr_x;
     int curr_y;
     int direction;
     int value;
     int dead;
-};
+} Alien;
 
-struct Aliens {
-    struct Alien *aliens[MAX_ALIENS];
+typedef struct aliens {
+    Alien *aliens[MAX_ALIENS];
     int totalNumAliens;
     int aliensRemaining;
     int aliensWin;
-};
+} Aliens;
 
-struct Aliens* setupAliens(const int);
-void destroyAliens(struct Aliens *);
-void moveAliens(struct Aliens *, struct Bullets *, int, int, int);
-void displayAliens(WINDOW *, struct Aliens *);
-void killAlien(struct Alien *, int *const);
+Aliens* setupAliens(const int);
+void destroyAliens(Aliens **);
+void moveAliens(Aliens *,Bullets *, int, int, int, int);
+void killAlien(Alien *, int *const);
 
 #endif //SPACE_INVADERS_ALIENS_H

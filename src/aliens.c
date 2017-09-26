@@ -2,32 +2,39 @@
 // Created by yoakim on 24/09/17.
 //
 
+#include "../include/main.h"
 #include "../include/aliens.h"
 
-struct Aliens* setupAliens(const int numAliens) {
+Aliens* setupAliens(const int numAliens) {
 
-    struct Aliens* aliens = (struct Aliens *)malloc(sizeof(struct Aliens));
-    aliens->totalNumAliens = numAliens;
-    aliens->aliensRemaining = numAliens;
-    aliens->aliensWin = FALSE;
-    for(int i = 0; i < numAliens; i++){
-        aliens->aliens[i] = (struct Alien*)malloc(sizeof(struct Alien) * numAliens);
-        aliens->aliens[i]->body = 'X';
-        aliens->aliens[i]->curr_x = i + 1;
-        aliens->aliens[i]->curr_y = 1;
-        aliens->aliens[i]->direction = 1;
-        aliens->aliens[i]->value = 25;
-        aliens->aliens[i]->dead = FALSE;
+    Aliens* aliens = NULL;
+    if(numAliens > 0){
+        aliens = (Aliens *)malloc(sizeof(Aliens));
+        aliens->totalNumAliens = numAliens;
+        aliens->aliensRemaining = numAliens;
+        aliens->aliensWin = FALSE;
+        for(int i = 0; i < numAliens; i++){
+            aliens->aliens[i] = (Alien*)malloc(sizeof(Alien));
+            aliens->aliens[i]->body = 'X';
+            aliens->aliens[i]->curr_x = i + 1;
+            aliens->aliens[i]->curr_y = 1;
+            aliens->aliens[i]->direction = 1;
+            aliens->aliens[i]->value = 25;
+            aliens->aliens[i]->dead = FALSE;
+        }
     }
     return aliens;
 }
 
-void destroyAliens(struct Aliens *aliens){
-    for(int i = 0; i < aliens->totalNumAliens; i++){
-        free(aliens->aliens[i]);
+void destroyAliens(Aliens **aliens){
+    if((*aliens) != NULL){
+        for(int i = 0; i < (*aliens)->totalNumAliens; i++){
+            free((*aliens)->aliens[i]);
+            (*aliens)->aliens[i] = NULL;
+        }
+        free(*aliens);
+        *aliens = NULL;
     }
-    free(aliens->aliens);
-    free(aliens);
 }
 
 /**
@@ -38,7 +45,7 @@ void destroyAliens(struct Aliens *aliens){
  * @param curr_x_pos
  * @return
  */
-void moveAliens(struct Aliens *aliens, struct Bullets *bullets, int field_start_x, int field_end_x, int field_end_y){
+void moveAliens(Aliens *aliens, Bullets *bullets, int field_start_x, int field_end_x, int field_end_y, int level_difficulty){
     for(int i = 0; i < aliens->totalNumAliens; i++){
         if(aliens->aliens[i]->dead != TRUE){
 
@@ -64,13 +71,7 @@ void moveAliens(struct Aliens *aliens, struct Bullets *bullets, int field_start_
     }
 }
 
-void displayAliens(WINDOW *win_field, struct Aliens *aliens){
-    for(int i = 0; i < aliens->totalNumAliens; i++) {
-        mvwprintw(win_field, aliens->aliens[i]->curr_y, aliens->aliens[i]->curr_x, &(aliens->aliens[i]->body));
-    }
-}
-
-void killAlien(struct Alien *alien, int *const score){
+void killAlien(Alien *alien, int *const score){
     alien->dead = TRUE;
     alien->direction = 0;
     alien->body = ' ';

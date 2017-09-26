@@ -5,14 +5,21 @@
 #ifndef SPACE_INVADERS_C_WINDOW_H
 #define SPACE_INVADERS_C_WINDOW_H
 
-#include "main.h"
+#include <ncurses.h>
+
+#include "bullets.h"
+#include "aliens.h"
+#include "ship.h"
 
 WINDOW *setupWindow(int, int, int, int);
 void drawBorders(WINDOW *);
 void destroyWin(WINDOW *);
-void displayBullets(WINDOW*, struct Bullets *);
+
+void displayBullets(WINDOW*, Bullets *);
+void displayAliens(WINDOW *, Aliens *);
+
 void displayScore(WINDOW *, int const *const);
 void displayBanner(WINDOW *);
 void displayLevel(WINDOW *, int const *const);
-void displayHealth(WINDOW *, struct Ship *);
+void displayHealth(WINDOW *, Ship *);
 #endif //SPACE_INVADERS_C_WINDOW_H

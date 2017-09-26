@@ -1,3 +1,8 @@
+#include <assert.h>
+#include "../include/bullets.h"
+#include "../include/ship.h"
+#include "../include/aliens.h"
+#include "../include/c_window.h"
 #include "../include/main.h"
 
 /* void resizeHandler(int sig){ */
@@ -7,24 +12,8 @@
 
 int level_difficulty = 50;
 
-/**
- * Creates a basic ship.
- */
-struct Ship* setupShip(int health, int intX, int intY){
-    struct Ship* ship = (struct Ship*)malloc(sizeof(struct Ship));
-    ship->body = 'A';
-    ship->health = health;
-    ship->posX = intX / 2;
-    ship->posY = intY - 1;
-    return ship;
-}
-
-void destroyShip(struct Ship* ship){
-    free(ship);
-}
-
 // Check for collisions.
-void checkAlienCollisions(struct Bullets *bullets, struct Aliens *aliens, int *const score){
+void checkAlienCollisions(Bullets *bullets, Aliens *aliens, int *const score){
 
     // Only check if they are the correct 'height'
     for(int i = 0; i < MAX_ALIENS; i++){
@@ -45,7 +34,7 @@ void checkAlienCollisions(struct Bullets *bullets, struct Aliens *aliens, int *c
     }
 }
 
-void checkShipCollision(struct Bullets *bullets, struct Ship *ship){
+void checkShipCollision(Bullets *bullets, Ship *ship){
     for(int i = 0; i < MAX_BULLETS; i++){
         if(bullets->bullets[i]->type == ALIEN && bullets->bullets[i]->curr_y == ship->posY &&
                 bullets->bullets[i]->curr_x == ship->posX){
@@ -56,6 +45,13 @@ void checkShipCollision(struct Bullets *bullets, struct Ship *ship){
             break;
         }
     }
+}
+
+void closeProgram(Ship* ship, Aliens *aliens, Bullets *bullets){
+    destroyAliens(&aliens);
+    destroyShip(ship);
+    destroyBullets(bullets);
+    endwin();
 }
 
 int main() {
@@ -72,16 +68,23 @@ int main() {
 
     srand((unsigned int) time(NULL));
 
-    WINDOW *win_field;
-    WINDOW *win_score;
-    WINDOW *win_banner;
-    WINDOW *win_level;
-    WINDOW *win_health;
+    WINDOW *win_field = NULL;
+    WINDOW *win_score = NULL;
+    WINDOW *win_banner = NULL;
+    WINDOW *win_level = NULL;
+    WINDOW *win_health = NULL;
 
     int max_x = 0;
     int max_y = 0;
     int field_max_x = 0;
     int field_max_y = 0;
+
+//    int tmpInt = get_escdelay();
+//    int successful;
+//    // Attempt to reduce escape delay.
+//    // Holding down particular key should not wait the default 1000ms.
+//    successful = set_escdelay(0);
+//    tmpInt = get_escdelay();
 
 //    int health_int = 0;
 //    int *const health = &health_int;
@@ -96,6 +99,9 @@ int main() {
     noecho();           // Stops character being displayed on screen.
     cbreak();           // Does not wait for line break.
     curs_set(FALSE);    // Disables cursor.
+//    int tmpInt = get_escdelay();
+//    int successful = set_escdelay(0);
+//    tmpInt = get_escdelay();
 
     getmaxyx(stdscr, max_y, max_x);
     // Main window
@@ -109,9 +115,9 @@ int main() {
 
     getmaxyx(win_field, field_max_y, field_max_x);
 
-    struct Ship *ship = setupShip(100, field_max_x, field_max_y - 1);
-    struct Aliens *aliens = setupAliens(MAX_ALIENS);
-    struct Bullets *bullets = setupBullets();
+    Ship *ship = setupShip(100, field_max_x, field_max_y - 1);
+    Aliens *aliens = setupAliens(MAX_ALIENS);
+    Bullets *bullets = setupBullets();
 
     int ch;             // User entered character.
     keypad(win_field, TRUE);   // Enables keypad.
@@ -122,6 +128,8 @@ int main() {
     drawBorders(win_banner);
     wrefresh(win_banner);
 
+//    closeProgram(ship, aliens, bullets);
+
     for (;;) {
         ////////////// NEED TO BE SLOWER.
         wclear(win_field);
@@ -131,7 +139,7 @@ int main() {
         wclear(win_level);
 
         // FIXME: can be on separate thread.
-        moveAliens(aliens, bullets, 0, field_max_x, field_max_y);
+        moveAliens(aliens, bullets, 0, field_max_x, field_max_y, level_difficulty);
 
         displayScore(win_score, score);
         displayLevel(win_level, level);
@@ -167,7 +175,7 @@ int main() {
             drawBorders(win_field);
             wrefresh(win_field);
             sleep(MESSAGE_DELAY);
-            endwin();
+            closeProgram(ship, aliens, bullets);
             return 0;
         }
 
@@ -178,11 +186,14 @@ int main() {
             drawBorders(win_field);
             wrefresh(win_field);
             sleep(MESSAGE_DELAY);
-            endwin();
+            closeProgram(ship, aliens, bullets);
             return 0;
         }
 
         if ((ch = wgetch(win_field)) != ERR) {
+            // Flushes user input. Prevents input being queued.
+//            tmpInt = get_escdelay();
+            flushinp();
             // User input.
             switch (ch) {
                 case KEY_LEFT:
@@ -202,14 +213,17 @@ int main() {
                     break;
 
                 case KEY_DOWN:      // Exit condition.
-                    destroyShip(ship);
-                    destroyAliens(aliens);
-                    endwin();       // Reset terminal to default.
+                    closeProgram(ship, aliens, bullets);
+//                    destroyShip(ship);
+//                    assert(ship == NULL);
+//                    destroyAliens(aliens);
+//                    assert(ship == NULL);
                     return 0;
             }
         }
     }
 }
+
 
 //void *guiFunction(void *ptr){
 //
@@ -247,7 +261,7 @@ int main() {
 //
 //    getmaxyx(win_field, field_max_y, field_max_x);
 //
-//    struct Ship *ship = setupShip(100, field_max_x, field_max_y - 1);
+//    Ship *ship = setupShip(100, field_max_x, field_max_y - 1);
 //    struct Aliens *aliens = setupAliens(MAX_ALIENS);
 //    struct Bullets *bullets = setupBullets();
 //

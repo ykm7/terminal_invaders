@@ -3,22 +3,15 @@
 //
 
 #include "../include/bullets.h"
+#include "../include/main.h"
 
-void displayBullets(WINDOW* win, struct Bullets *bullets){
-    for(int i = 0; i < MAX_BULLETS; i++){
-        if(bullets->bullets[i]->active == TRUE){
-            mvwprintw(win, bullets->bullets[i]->curr_y, bullets->bullets[i]->curr_x, &(bullets->bullets[i]->body));
-        }
-    }
-}
+Bullets* setupBullets(void){
 
-struct Bullets* setupBullets(void){
-
-    struct Bullets *bullets = (struct Bullets*)malloc(sizeof(struct Bullets));
+    Bullets *bullets = (Bullets*)malloc(sizeof(Bullets));
 
     bullets->current = 0;
     while(bullets->current < MAX_BULLETS){
-        bullets->bullets[bullets->current] = (struct Bullet *)malloc(sizeof(struct Bullet));
+        bullets->bullets[bullets->current] = (Bullet *)malloc(sizeof(Bullet));
         bullets->bullets[bullets->current]->active = FALSE;
         bullets->current++;
     }
@@ -27,7 +20,7 @@ struct Bullets* setupBullets(void){
     return bullets;
 }
 
-void shoot(struct Bullets *bullets, int pos_y, int pos_x, int bullet_type){
+void shoot(Bullets *bullets, int pos_y, int pos_x, int bullet_type){
 
     bullets->bullets[bullets->current]->active = TRUE;
     bullets->bullets[bullets->current]->curr_x = pos_x;
@@ -44,7 +37,7 @@ void shoot(struct Bullets *bullets, int pos_y, int pos_x, int bullet_type){
  * Move bullets up by one.
  * @param bullets
  */
-void moveBullets(struct Bullets *bullets, int field_min_y, int field_max_y){
+void moveBullets(Bullets *bullets, int field_min_y, int field_max_y){
 
     for(int i = 0; i < MAX_BULLETS; i++) {
         if (bullets->bullets[i]->active == TRUE){
@@ -66,7 +59,7 @@ void moveBullets(struct Bullets *bullets, int field_min_y, int field_max_y){
     }
 }
 
-void destroyBullets(struct Bullets *bullets){
+void destroyBullets(Bullets *bullets){
     for(int i = 0; i < MAX_BULLETS; i++){
         free(bullets->bullets[i]);
     }
