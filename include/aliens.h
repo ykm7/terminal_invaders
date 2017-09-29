@@ -26,9 +26,10 @@ typedef struct aliens {
     int aliensWin;
 } Aliens;
 
-Aliens* setupAliens(const int);
+Aliens* initialiseAliens(const int);
+void setupAliens(Aliens *);
 void destroyAliens(Aliens **);
-void moveAliens(Aliens *,Bullets *, int, int, int, int);
+void moveAliens(Aliens *,Bullets *, int, int, int, int *);
 void killAlien(Alien *, int *const);
 
 #endif //SPACE_INVADERS_ALIENS_H

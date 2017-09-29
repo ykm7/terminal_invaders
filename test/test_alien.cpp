@@ -45,16 +45,16 @@ extern "C" {
 /*
  * # FUNCTIONS TO TEST
  *
- * Aliens* setupAliens(const int);
+ * Aliens* initialiseAliens(const int);
  * void destroyAliens(Aliens *);
  * void moveAliens(Aliens *,Bullets *, int, int, int);
  * void killAlien(Alien *, int *const);
  */
 
-SCENARIO("Aliens creation/ destruction tests", "[Aliens* setupAliens(const int)]"){
+SCENARIO("Aliens creation/ destruction tests", "[Aliens* initialiseAliens(const int)]"){
     WHEN("Non zero initiation."){
         const int testValue = 10;
-        Aliens* aliens = setupAliens(testValue);
+        Aliens* aliens = initialiseAliens(testValue);
         THEN("Created aliens"){
             REQUIRE(aliens != 0);
             CHECK(aliens->totalNumAliens == testValue);
@@ -74,7 +74,7 @@ SCENARIO("Aliens creation/ destruction tests", "[Aliens* setupAliens(const int)]
 
     WHEN("Zero passed to alien creation."){
         const int testValue = 0;
-        Aliens* aliens = setupAliens(testValue);
+        Aliens* aliens = initialiseAliens(testValue);
         THEN("Created aliens"){
             REQUIRE(aliens == 0);
         }
@@ -87,7 +87,7 @@ SCENARIO("Aliens creation/ destruction tests", "[Aliens* setupAliens(const int)]
 
     WHEN("Negative value passed to alien creation."){
         const int testValue = -5;
-        Aliens* aliens = setupAliens(testValue);
+        Aliens* aliens = initialiseAliens(testValue);
         THEN("Created aliens"){
             REQUIRE(aliens == 0);
         }

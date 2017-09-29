@@ -5,14 +5,14 @@
 #include "../include/bullets.h"
 #include "../include/main.h"
 
-Bullets* setupBullets(void){
+Bullets* initialisingBullets(void){
 
     Bullets *bullets = (Bullets*)malloc(sizeof(Bullets));
 
     bullets->current = 0;
     while(bullets->current < MAX_BULLETS){
         bullets->bullets[bullets->current] = (Bullet *)malloc(sizeof(Bullet));
-        bullets->bullets[bullets->current]->active = FALSE;
+        bullets->bullets[bullets->current]->active = false;
         bullets->current++;
     }
     bullets->current = 0;
@@ -20,9 +20,15 @@ Bullets* setupBullets(void){
     return bullets;
 }
 
+void setupBullets(Bullets *bullets){
+    for(int i = 0; i < MAX_BULLETS; i++){
+        bullets->bullets[bullets->current]->active = false;
+    }
+}
+
 void shoot(Bullets *bullets, int pos_y, int pos_x, int bullet_type){
 
-    bullets->bullets[bullets->current]->active = TRUE;
+    bullets->bullets[bullets->current]->active = true;
     bullets->bullets[bullets->current]->curr_x = pos_x;
     bullets->bullets[bullets->current]->curr_y = pos_y;
     bullets->bullets[bullets->current]->body = 'o';
@@ -40,7 +46,7 @@ void shoot(Bullets *bullets, int pos_y, int pos_x, int bullet_type){
 void moveBullets(Bullets *bullets, int field_min_y, int field_max_y){
 
     for(int i = 0; i < MAX_BULLETS; i++) {
-        if (bullets->bullets[i]->active == TRUE){
+        if (bullets->bullets[i]->active == true){
 
             // Bullets from the ship go 'up'.
             if(bullets->bullets[i]->type == SHIP){
@@ -53,15 +59,16 @@ void moveBullets(Bullets *bullets, int field_min_y, int field_max_y){
 
             if (bullets->bullets[i]->curr_y == field_min_y ||
                 bullets->bullets[i]->curr_y == field_max_y) {
-                bullets->bullets[i]->active = FALSE;
+                bullets->bullets[i]->active = false;
             }
         }
     }
 }
 
-void destroyBullets(Bullets *bullets){
+void destroyBullets(Bullets **bullets){
     for(int i = 0; i < MAX_BULLETS; i++){
-        free(bullets->bullets[i]);
+        free((*bullets)->bullets[i]);
     }
-    free(bullets);
+    free((*bullets));
+    *bullets = NULL;
 }

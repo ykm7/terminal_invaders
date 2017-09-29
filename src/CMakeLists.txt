@@ -15,9 +15,8 @@ list(APPEND SOURCE_FILES
 set(HEADER_FILES ${space_invaders_SOURCE_DIR}/include)
 
 find_package(Curses REQUIRED)
-find_package(Threads REQUIRED)
 
 include_directories(${CURSES_INCLUDE_DIR})
 
 add_executable(${EXECUTABLE_NAME} ${SOURCE_FILES})
-target_link_libraries(${EXECUTABLE_NAME} ${CURSES_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(${EXECUTABLE_NAME} ${CURSES_LIBRARIES})

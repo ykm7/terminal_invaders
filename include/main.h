@@ -10,14 +10,16 @@
 #include <signal.h>
 #include <unistd.h>
 #include <time.h>
+#include <stdbool.h>
 #include <pthread.h>
 
 #define DELAY           75000
 #define MESSAGE_DELAY   5
 
-#define TRUE 1
-#define FALSE 0
-
-extern int level_difficulty;
+/**
+ * Decrease to increase difficulty.
+ * Linked to chance that aliens shoot.
+ */
+#define LEVEL_DIFFICULTY 100
 
 #endif //SPACE_INVADERS_MAIN_H

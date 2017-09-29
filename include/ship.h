@@ -12,7 +12,7 @@ typedef struct {
     int posY;
 } Ship;
 
-Ship* setupShip(int, int, int);
-void destroyShip(Ship *);
+Ship* initialiseShip(int, int, int);
+void destroyShip(Ship **);
 
 #endif //SPACE_INVADERS_SHIP_H

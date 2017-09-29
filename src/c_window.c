@@ -48,6 +48,22 @@ void displayAliens(WINDOW *win_field, Aliens *aliens){
     }
 }
 
-void destroyWin(WINDOW *win){
-    free(win);
+void displayHelp(WINDOW *win, int field_max_y){
+    char ch;
+    wclear(win);
+    int y_pos = field_max_y / 4;
+    while((ch = wgetch(win)) != 'q'){
+        mvwprintw(win, y_pos, 5, "HELP");
+        mvwprintw(win, y_pos + 1, 5, "---------------------------------");
+        mvwprintw(win, y_pos + 2, 5, "Please shoot down all the aliens");
+        mvwprintw(win, y_pos + 3, 5, "Arrow keys move the ship.");
+        mvwprintw(win, y_pos + 4, 5, "Up causes the ship to shoot.");
+        mvwprintw(win, y_pos + 5, 5, "Down or q will quit the game.");
+        mvwprintw(win, y_pos + 6, 5, "---------------------------------");
+        mvwprintw(win, y_pos + 7, 5, "'q' to close this help menu.");
+        mvwprintw(win, y_pos + 8, 5, "---------------------------------");
+        usleep(DELAY);
+    }
 }
+
+

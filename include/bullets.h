@@ -27,9 +27,10 @@ typedef struct bullets {
     int current;
 } Bullets;
 
-Bullets* setupBullets(void);
+Bullets* initialisingBullets(void);
+void setupBullets(Bullets *);
 void shoot(Bullets *, int, int, int);
 void moveBullets(Bullets *, int, int);
-void destroyBullets(Bullets *);
+void destroyBullets(Bullets **);
 
 #endif //SPACE_INVADERS_BULLETS_H
