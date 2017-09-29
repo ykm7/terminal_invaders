@@ -22,5 +22,8 @@ void displayScore(WINDOW *, int const *const);
 void displayBanner(WINDOW *);
 void displayLevel(WINDOW *, int const *const);
 void displayHealth(WINDOW *, Ship *);
+
+void displayLevelComplete(WINDOW *, int, int, int const *);
+void displayGameOver(WINDOW *, int, int, int const *);
 void displayHelp(WINDOW *, int);
 #endif //SPACE_INVADERS_C_WINDOW_H

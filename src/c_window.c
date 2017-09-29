@@ -48,6 +48,26 @@ void displayAliens(WINDOW *win_field, Aliens *aliens){
     }
 }
 
+void displayLevelComplete(WINDOW *win_field, int field_max_y, int field_max_x, int const *level){
+    wclear(win_field);
+    mvwprintw(win_field, field_max_y/2, field_max_x/2 - 7, "LEVEL COMPLETE");
+    drawBorders(win_field);
+    wrefresh(win_field);
+    sleep(MESSAGE_DELAY / 2);
+    mvwprintw(win_field, field_max_y/2, field_max_x/2 - 7, "Next Level:  %d", (*level));
+    drawBorders(win_field);
+    wrefresh(win_field);
+    sleep(MESSAGE_DELAY / 2);
+}
+
+void displayGameOver(WINDOW * win_field, int field_max_y, int field_max_x, int const *score){
+    wclear(win_field);
+    mvwprintw(win_field, field_max_y/2, field_max_x/2 - 16, "GAME OVER. Final score: %d", (*score));
+    drawBorders(win_field);
+    wrefresh(win_field);
+    sleep(MESSAGE_DELAY);
+}
+
 void displayHelp(WINDOW *win, int field_max_y){
     char ch;
     wclear(win);

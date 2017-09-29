@@ -141,12 +141,8 @@ int main() {
 
 //         Lose condition when the alien row hit the same row as the ship.
         if (ship->health <= 0 || aliens->aliensWin == TRUE) {
-            wclear(win_field);
-            char *LOSE_MESSAGE = "YOU LOSE";
-            mvwprintw(win_field, field_max_y/2, field_max_x/2 - 1, LOSE_MESSAGE);
-            drawBorders(win_field);
-            wrefresh(win_field);
-            sleep(MESSAGE_DELAY);
+            wrefresh(win_health);       // Current health value would be updated next cycle.
+            displayGameOver(win_field, field_max_y, field_max_x, score);
             closeProgram(ship, aliens, bullets);
             endwin();
             return 0;
@@ -155,15 +151,7 @@ int main() {
         // Win condition.
         if (aliens->aliensRemaining == 0){
             setLevel(aliens, bullets, level);
-            wclear(win_field);
-            mvwprintw(win_field, field_max_y/2, field_max_x/2 - 7, "LEVEL COMPLETE");
-            drawBorders(win_field);
-            wrefresh(win_field);
-            sleep(MESSAGE_DELAY / 2);
-            mvwprintw(win_field, field_max_y/2, field_max_x/2 - 7, "Next Level:  %d", (*level));
-            drawBorders(win_field);
-            wrefresh(win_field);
-            sleep(MESSAGE_DELAY / 2);
+            displayLevelComplete(win_field, field_max_y, field_max_x, level);
         }
 
         if ((ch = wgetch(win_field)) != ERR) {
@@ -171,7 +159,6 @@ int main() {
             switch (ch) {
                 case 'h':
                     displayHelp(win_field, field_max_y);
-//                    }
                     break;
 
                 case KEY_LEFT:
@@ -195,6 +182,7 @@ int main() {
 
                 case KEY_DOWN:      // Exit condition.
                 case 'q':
+                    displayGameOver(win_field, field_max_y, field_max_x, score);
                     closeProgram(ship, aliens, bullets);
                     endwin();
                     return 0;
